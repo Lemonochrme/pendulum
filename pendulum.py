@@ -19,7 +19,7 @@ g = 9.81  # Accélération due à la gravité (m/s^2)
 l = 150   # Longueur du pendule en pixels
 b = 0.05  # Coefficient de friction augmenté
 dt = 0.08 # Pas de temps augmenté
-move_speed = 1  # Vitesse de déplacement de l'axe horizontal
+move_speed = 10  # Vitesse de déplacement de l'axe horizontal
 
 # Paramètres du contrôleur PID
 Kp = 5.0   # Gain proportionnel réduit
@@ -27,7 +27,7 @@ Ki = 0.1   # Gain intégral réduit
 Kd = 2.0   # Gain dérivé réduit
 
 # Conditions initiales
-theta = np.pi  # Angle initial (rad)
+theta = 0.0  # Angle initial (rad)
 omega = 0.0  # Vitesse angulaire initiale (rad/s)
 
 # Centre du pendule (initial)
@@ -47,6 +47,9 @@ previous_error = 0
 
 # Mode de contrôle
 manual_control = True
+
+# Angle seuil pour activer le contrôle PID automatique (en radians)
+threshold_angle = 2.0
 
 def update_pendulum(theta, omega, dt, l, g, b, v_origin_x):
     alpha = -(g / l) * np.sin(theta) - b * omega - (v_origin_x * np.cos(theta) / l)
@@ -79,17 +82,24 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            manual_control = not manual_control
+
+    # Calculer l'angle absolu du pendule
+    absolute_angle = abs(theta)
+
+    # Basculer automatiquement entre le mode de contrôle manuel et le contrôle PID
+    if absolute_angle > threshold_angle:
+        manual_control = False
+    else:
+        manual_control = True
 
     # Gestion des événements de clavier pour déplacer l'axe horizontalement
     keys = pygame.key.get_pressed()
     previous_origin_x = origin_x
     if manual_control:
         if keys[pygame.K_LEFT] and origin_x > min_x:
-            origin_x -= move_speed
+            origin_x -= 0.1*move_speed # To ease manual control factor : 0.1
         elif keys[pygame.K_RIGHT] and origin_x < max_x:
-            origin_x += move_speed
+            origin_x += 0.1*move_speed
         error = integral = derivative = 0  # Réinitialiser les métriques PID en mode manuel
     else:
         pid_output, error, integral, derivative = pid_control(theta, dt, Kp, Ki, Kd)
