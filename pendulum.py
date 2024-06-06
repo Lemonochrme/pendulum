@@ -18,16 +18,16 @@ RED = (255, 0, 0)
 g = 9.81  # Accélération due à la gravité (m/s^2)
 l = 150   # Longueur du pendule en pixels
 b = 0.05  # Coefficient de friction augmenté
-dt = 0.1 # Pas de temps augmenté
-move_speed = 5  # Vitesse de déplacement de l'axe horizontal
+dt = 0.08 # Pas de temps augmenté
+move_speed = 10  # Vitesse de déplacement de l'axe horizontal
 
 # Paramètres du contrôleur PID
-Kp = 5.0   # Gain proportionnel réduit
-Ki = 0.1   # Gain intégral réduit
-Kd = 2.0   # Gain dérivé réduit
+Kp = 5.0   # Gain proportionnel
+Ki = 0.1   # Gain intégral
+Kd = 2.0   # Gain dérivé
 
 # Conditions initiales
-theta = 0.0  # Angle initial (rad)
+theta = np.pi-0.4  # Angle initial (rad)
 omega = 0.0  # Vitesse angulaire initiale (rad/s)
 
 # Centre du pendule (initial)
@@ -86,29 +86,13 @@ while running:
     # Calculer l'angle absolu du pendule
     absolute_angle = abs(theta)
 
-    # Basculer automatiquement entre le mode de contrôle manuel et le contrôle PID
-    if absolute_angle > threshold_angle:
-        manual_control = False
-    else:
-        manual_control = True
-
-    # Gestion des événements de clavier pour déplacer l'axe horizontalement
-    keys = pygame.key.get_pressed()
     previous_origin_x = origin_x
-    if manual_control:
-        if keys[pygame.K_LEFT] and origin_x > min_x:
-            origin_x -= 0.2*move_speed # Factor to ease manual control 
-        elif keys[pygame.K_RIGHT] and origin_x < max_x:
-            origin_x += 0.2*move_speed
-        error = integral = derivative = 0  # Réinitialiser les métriques PID en mode manuel
-    else:
-        pid_output, error, integral, derivative = pid_control(theta, dt, Kp, Ki, Kd)
-        origin_x += pid_output  # Ajuster l'origine du pendule en fonction de la sortie PID
-        
-        # Ajouter une perturbation basée sur la position de la souris
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if mouse_y < height:
-            theta -= (mouse_x - width // 2) * 0.00001  # Influence légère basée sur la position x de la souris
+    pid_output, error, integral, derivative = pid_control(theta, dt, Kp, Ki, Kd)
+    origin_x += pid_output  # Ajuster l'origine du pendule en fonction de la sortie PID
+    
+    # Ajouter une perturbation basée sur la position de la souris
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    theta -= (mouse_x - width // 2) * 0.00001  # Influence légère basée sur la position x de la souris
 
     # Appliquer les limites d'excursion
     if origin_x < min_x:
@@ -134,13 +118,13 @@ while running:
     pygame.draw.circle(screen, WHITE, (int(x), int(y)), 10)
 
     # Afficher les métriques
-    draw_text(screen, f"Theta angle (deg): {theta:.2f}", (10, 10))
-    draw_text(screen, f"Angular velocity (rad/s): {omega:.2f}", (10, 50))
-    draw_text(screen, f"Position on x axis (px): {origin_x}", (10, 90))
-    draw_text(screen, f"Mode: {'Manual' if manual_control else 'PID'}", (10, 130))
-    draw_text(screen, f"PID Error: {error:.2f}", (10, 170))
-    draw_text(screen, f"Integral PID: {integral:.2f}", (10, 210))
-    draw_text(screen, f"Derivative PID: {derivative:.2f}", (10, 250))
+    draw_text(screen, f"Angle (rad): {theta:.2f}", (10, 10))
+    draw_text(screen, f"Vitesse Angulaire (rad/s): {omega:.2f}", (10, 50))
+    draw_text(screen, f"Position sur l'axe (px): {origin_x:.2f}", (10, 90))
+    draw_text(screen, f"Erreur PID: {error:.2f}", (10, 130))
+    draw_text(screen, f"Kp: {Kp:.2f}", (10, 170))
+    draw_text(screen, f"Ki: {Ki:.2f}", (10, 210))
+    draw_text(screen, f"Kd: {Kd:.2f}", (10, 250))
 
     pygame.display.flip()
     
