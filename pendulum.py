@@ -28,6 +28,8 @@ def update_pendulum(theta, omega, dt, l, g, b):
     theta = (theta + np.pi) % (2 * np.pi) - np.pi # normalisation de l'angle entre -pi et pi
     return theta, omega
 
+# Pendulum equation : theta'' = -(g/l) * sin(theta) - b * theta'
+
 clock = pygame.time.Clock()
 
 while True:
