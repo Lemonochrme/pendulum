@@ -4,3 +4,8 @@
 2. `cd pendulum/`
 3. `pip install pygame numpy`
 4. Run the simulation `python pendulum.py`
+
+
+ToDo :
+- [ ] PID
+- [ ] Implement Q-Learning to optimize PID weights
